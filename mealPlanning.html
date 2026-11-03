@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Troop Meal Planner</title>
+
+<style>
+:root{
+    color-scheme:light;
+    font-family:Arial, sans-serif;
+    color:#202b2b;
+    background:#f2f4f1;
+}
+
+*{box-sizing:border-box}
+
+body{margin:0;padding:24px}
+
+.container{
+    max-width:1200px;
+    margin:auto;
+    padding:28px;
+    background:#fff;
+    border:1px solid #d6ddd8;
+}
+
+h1,h2,h3,p{margin-top:0}
+h1{margin-bottom:8px;color:#183d35;font-size:30px}
+h2{margin:28px 0 12px;color:#183d35;font-size:21px}
+h3{margin:0;color:#183d35;font-size:18px}
+.intro{margin-bottom:24px;color:#52615c}
+a{color:#176b58}
+
+table{width:100%;border-collapse:collapse}
+th,td{padding:9px 10px;border:1px solid #cbd4ce;text-align:left}
+th{background:#e8eeea;color:#263b34;font-size:14px}
+input,select,textarea{
+    width:100%;
+    min-width:0;
+    padding:9px 10px;
+    border:1px solid #aebbb3;
+    border-radius:3px;
+    background:white;
+    color:#202b2b;
+    font:inherit;
+}
+input:focus,select:focus,textarea:focus{
+    outline:2px solid #2e8069;
+    outline-offset:1px;
+}
+label{display:block;color:#46564f;font-size:13px;font-weight:700}
+label input,label select,label textarea{margin-top:6px;font-weight:400}
+
+.trip-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px}
+.meal-list{display:grid;gap:18px}
+.meal-card{border:1px solid #b9c9bf;background:#fff}
+.meal-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    padding:14px 16px;
+    background:#e9f0eb;
+    border-bottom:1px solid #b9c9bf;
+}
+.meal-heading{display:flex;align-items:center;gap:12px;min-width:0}
+.meal-index{color:#176b58;font-size:13px;font-weight:700;text-transform:uppercase;white-space:nowrap}
+.meal-slot{max-width:210px}
+.meal-body{padding:16px}
+.meal-fields{display:grid;grid-template-columns:minmax(220px,2fr) minmax(160px,1fr) minmax(130px,.7fr);gap:12px;margin-bottom:20px}
+.section-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:8px}
+.helper{margin:0;color:#64726c;font-size:13px}
+.table-scroll{overflow-x:auto}
+.ingredient-table{min-width:650px}
+.ingredient-table th:last-child,.ingredient-table td:last-child{width:50px;text-align:center}
+.ingredient-name{min-width:150px}
+.ingredient-quantity{max-width:120px}
+.ingredient-unit{max-width:120px}
+.ingredient-price{max-width:130px}
+.line-cost{font-variant-numeric:tabular-nums;white-space:nowrap}
+.meal-total{
+    display:flex;
+    justify-content:flex-end;
+    gap:8px;
+    margin:10px 0 20px;
+    color:#183d35;
+    font-weight:700;
+}
+.meal-meta{display:grid;grid-template-columns:minmax(270px,1fr) minmax(220px,1fr);gap:12px 18px}
+.food-groups{display:flex;flex-wrap:wrap;gap:10px 14px;padding-top:7px}
+.food-groups label{display:flex;align-items:center;gap:5px;font-weight:400}
+.food-groups input{width:auto;margin:0;accent-color:#176b58}
+.wide{grid-column:1/-1}
+.notes-area{min-height:64px;resize:vertical}
+
+button{padding:9px 13px;border:1px solid #176b58;border-radius:3px;background:#176b58;color:white;font:inherit;font-weight:700;cursor:pointer}
+button:hover{background:#105442}
+button:disabled{opacity:.5;cursor:not-allowed}
+button:focus-visible{outline:2px solid #202b2b;outline-offset:2px}
+.secondary-button{background:white;color:#176b58}
+.secondary-button:hover{background:#edf4ef;color:#105442}
+.danger-button{padding:7px 10px;border-color:#a34436;background:white;color:#8c3025}
+.danger-button:hover{background:#fff1ee;color:#70251d}
+.meal-actions{display:flex;gap:8px;align-items:center}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.shopping-table{margin-top:8px}
+.shopping-table td:last-child,.shopping-table th:last-child{text-align:right}
+.empty-shopping{text-align:center;color:#64726c;padding:18px}
+.summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:22px}
+.summary-item{padding:14px;border-top:3px solid #2e8069;background:#eef3ef}
+.summary-label{display:block;margin-bottom:7px;color:#53645c;font-size:13px}
+.summary-value{color:#183d35;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.print-only{display:none}
+
+@media(max-width:700px){
+    body{padding:10px}
+    .container{padding:18px}
+    .trip-grid,.meal-fields,.meal-meta{grid-template-columns:1fr}
+    .meal-heading{align-items:flex-start;flex-direction:column;gap:6px}
+    .meal-header{align-items:flex-start}
+    .meal-slot{max-width:100%}
+    .summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .wide{grid-column:auto}
+}
+
+@media print{
+    body{padding:0;background:white}
+    .container{max-width:none;padding:0;border:0}
+    button,.actions,.helper{display:none!important}
+    .meal-card{break-inside:avoid}
+    input,select,textarea{border:0;padding:2px;background:transparent;appearance:none}
+    .food-groups input{appearance:auto}
+    .meal-header{background:#eef1ee!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .summary-item{background:#f3f5f3!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Troop Campout Meal Planner</h1>
+<p class="intro">Plan each meal with its ingredients, quantities, preparation details, and estimated cost.</p>
+
+<h2>Trip Information</h2>
+<div class="trip-grid">
+    <label>Campout<input type="text" name="campout"></label>
+    <label>Patrol<input type="text" name="patrol"></label>
+    <label>Scout Responsible<input type="text" name="scout"></label>
+    <label>Number of People<input type="number" id="people" min="1" value="8"></label>
+</div>
+
+<h2>Meal Plan</h2>
+<div id="mealList" class="meal-list">
+    <article class="meal-card">
+        <header class="meal-header">
+            <div class="meal-heading">
+                <span class="meal-index"></span>
+                <select class="meal-slot" aria-label="Meal time">
+                    <option>Fri Dinner</option><option>Fri Dessert</option>
+                    <option>Sat Breakfast</option><option>Sat Lunch</option>
+                    <option>Sat Snack</option><option>Sat Dinner</option>
+                    <option>Sat Dessert</option><option>Sun Breakfast</option>
+                </select>
+            </div>
+            <button type="button" class="danger-button remove-meal">Remove meal</button>
+        </header>
+        <div class="meal-body">
+            <div class="meal-fields">
+                <label>Meal or dish name<input class="dish-name" type="text" placeholder="e.g. Chicken tacos"></label>
+                <label>Heat source
+                    <select class="heat-source">
+                        <option>Camp stove</option><option>Dutch oven</option><option>Grill</option>
+                        <option>Open fire</option><option>Trail stove</option><option>No cook</option>
+                    </select>
+                </label>
+                <label>Calories per person<input class="meal-calories" type="number" min="0" value="0"></label>
+            </div>
+
+            <div class="section-heading">
+                <h3>Ingredients</h3>
+                <p class="helper">Enter quantities for the whole patrol; each line cost is quantity x unit price.</p>
+            </div>
+            <div class="table-scroll">
+                <table class="ingredient-table">
+                    <thead><tr><th>Ingredient</th><th>Quantity</th><th>Unit</th><th>Unit price ($)</th><th>Line cost</th><th><span class="print-only">Remove</span></th></tr></thead>
+                    <tbody class="ingredient-list">
+                        <tr class="ingredient-row">
+                            <td><input class="ingredient-name" aria-label="Ingredient" placeholder="e.g. Tortillas"></td>
+                            <td><input class="ingredient-quantity" aria-label="Quantity" type="number" min="0" step="any" value="0"></td>
+                            <td><input class="ingredient-unit" aria-label="Unit" placeholder="each, lb, oz"></td>
+                            <td><input class="ingredient-price" aria-label="Unit price" type="number" min="0" step="0.01" value="0"></td>
+                            <td class="line-cost">$0.00</td>
+                            <td><button type="button" class="danger-button remove-ingredient" aria-label="Remove ingredient">Remove</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <button type="button" class="secondary-button add-ingredient">Add ingredient</button>
+            <div class="meal-total">Meal estimated cost: <span class="meal-cost">$0.00</span></div>
+
+            <div class="meal-meta">
+                <div>
+                    <label>MyPlate food groups</label>
+                    <div class="food-groups">
+                        <label><input type="checkbox">Vegetables</label>
+                        <label><input type="checkbox">Fruits</label>
+                        <label><input type="checkbox">Protein</label>
+                        <label><input type="checkbox">Grains</label>
+                        <label><input type="checkbox">Dairy</label>
+                    </div>
+                </div>
+                <label>Cooking methods<input class="cooking-methods" type="text" placeholder="e.g. Grilling, foil cooking"></label>
+                <label>Equipment and utensils<textarea class="notes-area" placeholder="List patrol and troop gear needed"></textarea></label>
+                <label>Meal notes<textarea class="notes-area" placeholder="Preparation, food safety, or serving notes"></textarea></label>
+            </div>
+        </div>
+    </article>
+</div>
+
+<div class="actions">
+    <button type="button" id="addMeal" class="secondary-button">Add meal</button>
+    <button type="button" id="printPlan">Export / Print to PDF</button>
+</div>
+
+<h2>Consolidated Shopping List</h2>
+<table class="shopping-table">
+    <thead><tr><th>Ingredient</th><th>Patrol quantity</th><th>Estimated cost</th></tr></thead>
+    <tbody id="shoppingList"><tr><td class="empty-shopping" colspan="3">Add ingredient names to build the shopping list.</td></tr></tbody>
+</table>
+
+<div class="summary">
+    <div class="summary-item"><span class="summary-label">Calories per person</span><span class="summary-value" id="totalCalories">0</span></div>
+    <div class="summary-item"><span class="summary-label">Total estimated cost</span><span class="summary-value" id="totalCost">$0.00</span></div>
+    <div class="summary-item"><span class="summary-label">Cost per person</span><span class="summary-value" id="costPerPerson">$0.00</span></div>
+    <div class="summary-item"><span class="summary-label">People</span><span class="summary-value" id="peopleDisplay">8</span></div>
+</div>
+</div>
+
+<script>
+const mealList = document.getElementById('mealList');
+const shoppingList = document.getElementById('shoppingList');
+
+function money(amount){
+    return '$' + amount.toFixed(2);
+}
+
+function updateMealLabels(){
+    const meals = [...mealList.querySelectorAll('.meal-card')];
+    meals.forEach((meal, index) => {
+        meal.querySelector('.meal-index').textContent = `Meal ${index + 1}`;
+        meal.querySelector('.remove-meal').disabled = meals.length === 1;
+        const ingredientRows = meal.querySelectorAll('.ingredient-row');
+        ingredientRows.forEach(row => {
+            row.querySelector('.remove-ingredient').disabled = ingredientRows.length === 1;
+        });
+    });
+}
+
+function updatePlan(){
+    let totalCalories = 0;
+    let totalCost = 0;
+    const items = new Map();
+
+    mealList.querySelectorAll('.meal-card').forEach(meal => {
+        let mealCost = 0;
+        totalCalories += Number(meal.querySelector('.meal-calories').value) || 0;
+
+        meal.querySelectorAll('.ingredient-row').forEach(row => {
+            const name = row.querySelector('.ingredient-name').value.trim();
+            const quantity = Number(row.querySelector('.ingredient-quantity').value) || 0;
+            const unit = row.querySelector('.ingredient-unit').value.trim();
+            const unitPrice = Number(row.querySelector('.ingredient-price').value) || 0;
+            const lineCost = quantity * unitPrice;
+            row.querySelector('.line-cost').textContent = money(lineCost);
+            mealCost += lineCost;
+
+            if(name){
+                const key = `${name.toLocaleLowerCase()}|${unit.toLocaleLowerCase()}`;
+                const item = items.get(key) || {name, quantity:0, unit, cost:0};
+                item.quantity += quantity;
+                item.cost += lineCost;
+                items.set(key, item);
+            }
+        });
+
+        meal.querySelector('.meal-cost').textContent = money(mealCost);
+        totalCost += mealCost;
+    });
+
+    const people = Math.max(1, Number(document.getElementById('people').value) || 1);
+    document.getElementById('totalCalories').textContent = totalCalories.toLocaleString();
+    document.getElementById('totalCost').textContent = money(totalCost);
+    document.getElementById('costPerPerson').textContent = money(totalCost / people);
+    document.getElementById('peopleDisplay').textContent = people;
+
+    shoppingList.replaceChildren();
+    if(items.size === 0){
+        const emptyRow = document.createElement('tr');
+        const emptyCell = document.createElement('td');
+        emptyCell.colSpan = 3;
+        emptyCell.className = 'empty-shopping';
+        emptyCell.textContent = 'Add ingredient names to build the shopping list.';
+        emptyRow.appendChild(emptyCell);
+        shoppingList.appendChild(emptyRow);
+        return;
+    }
+
+    [...items.values()].sort((first, second) => first.name.localeCompare(second.name)).forEach(item => {
+        const row = document.createElement('tr');
+        const nameCell = document.createElement('td');
+        const quantityCell = document.createElement('td');
+        const costCell = document.createElement('td');
+        nameCell.textContent = item.name;
+        quantityCell.textContent = `${item.quantity} ${item.unit}`.trim();
+        costCell.textContent = money(item.cost);
+        row.append(nameCell, quantityCell, costCell);
+        shoppingList.appendChild(row);
+    });
+}
+
+function addIngredient(meal){
+    const templateRow = meal.querySelector('.ingredient-row');
+    const row = templateRow.cloneNode(true);
+    row.querySelectorAll('input').forEach(input => {
+        input.value = input.classList.contains('ingredient-quantity') || input.classList.contains('ingredient-price') ? '0' : '';
+    });
+    row.querySelector('.line-cost').textContent = '$0.00';
+    meal.querySelector('.ingredient-list').appendChild(row);
+    updateMealLabels();
+    row.querySelector('.ingredient-name').focus();
+    updatePlan();
+}
+
+document.getElementById('addMeal').addEventListener('click', () => {
+    const meal = mealList.querySelector('.meal-card').cloneNode(true);
+    meal.querySelector('.meal-slot').selectedIndex = 0;
+    meal.querySelector('.dish-name').value = '';
+    meal.querySelector('.meal-calories').value = '0';
+    meal.querySelector('.cooking-methods').value = '';
+    meal.querySelectorAll('.meal-meta textarea').forEach(textarea => textarea.value = '');
+    meal.querySelectorAll('.food-groups input').forEach(checkbox => checkbox.checked = false);
+    const ingredientList = meal.querySelector('.ingredient-list');
+    ingredientList.replaceChildren(meal.querySelector('.ingredient-row').cloneNode(true));
+    meal.querySelectorAll('.ingredient-row input').forEach(input => {
+        input.value = input.classList.contains('ingredient-quantity') || input.classList.contains('ingredient-price') ? '0' : '';
+    });
+    meal.querySelector('.line-cost').textContent = '$0.00';
+    meal.querySelector('.meal-cost').textContent = '$0.00';
+    mealList.appendChild(meal);
+    updateMealLabels();
+    updatePlan();
+    meal.querySelector('.dish-name').focus();
+});
+
+document.getElementById('printPlan').addEventListener('click', () => window.print());
+
+document.addEventListener('click', event => {
+    const meal = event.target.closest('.meal-card');
+    if(event.target.closest('.add-ingredient') && meal){
+        addIngredient(meal);
+    }else if(event.target.closest('.remove-ingredient') && meal){
+        const rows = meal.querySelectorAll('.ingredient-row');
+        if(rows.length > 1){
+            event.target.closest('.ingredient-row').remove();
+            updateMealLabels();
+        }
+        updatePlan();
+    }else if(event.target.closest('.remove-meal') && meal && mealList.querySelectorAll('.meal-card').length > 1){
+        meal.remove();
+        updateMealLabels();
+        updatePlan();
+    }
+});
+
+document.addEventListener('input', updatePlan);
+document.addEventListener('change', updatePlan);
+updateMealLabels();
+updatePlan();
+
+</script>
+
+</body>
+</html>
