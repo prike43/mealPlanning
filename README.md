@@ -1,99 +1,38 @@
-Food on Trips & Meal Planning
-Food Allergies and Dietary Restrictions
-The safety of our Scouts comes first.
-Families must inform troop leadership of any:
-Food allergies
-Medical dietary restrictions
-Religious dietary requirements
-Other food-related concerns
-It is the family’s responsibility to ensure troop leadership is aware of any dietary needs that may affect menu planning.
-Patrol Leaders and cooks should review these restrictions before purchasing food for an outing. If you have questions, contact the Senior Patrol Leader or Scoutmaster.
-Menu Planning
-Menu Planning Template (HTML to PDF, download and fill out): Meal Planner Page
-Menu Planning Template (Excel): T125 Meal Planning
-Good menu planning helps Scouts:
-Eat healthy meals
-Stay energized during outdoor activities
-Minimize food waste
-Keep costs reasonable
-Complete advancement requirements
-Patrol menus must be submitted two weeks before each outing for review and approval.
-Earlier ranks can get by with less detail, but for the Cooking Merit Badge and the cooking required for Camping Merit Badge, using the above is highly recommended. Add detail on costs and quantities of ingredient items as required for First Class rank cooking and Cooking Merit Badge.
+# Troop Campout Meal Planner
 
-Meals should be designed for balanced nutrition and appropriate to the activity, using MyPlate (or the current USDA nutrition model).
-https://www.choosemyplate.gov/
+`index.html` is a standalone meal-planning page for preparing a patrol campout menu. It collects trip details, meals, ingredient quantities and costs, cooking notes, and produces a consolidated shopping list and printable plan. It runs in a modern browser without a build step or external dependencies.
 
-Backpacking “Trail Meals” for Cooking and Camping Merit Badges
+## Open the Planner
 
-Ingredients for trail meals should be lightweight and not require refrigeration. Scouts are often at a loss to pick non-refrigerated ingredients. Dehydrated prepared meals by Mountain House or other brands can be found at outdoor retailers like REI, but can be quite expensive. Visit the grocery store to save money! There are a variety of meats in foil packets near the canned tuna such as packet tuna, chicken and beef, often with tempting flavors. Items like jerky, dehydrated chili or soup mixes, Knorr Sides, Minute Rice, dehydrated mashed potatoes, oatmeal, powdered milk, tortillas, or ramen noodles are at the grocery store too and be a part of many recipes. Be Prepared by planning and sourcing ingredients well ahead of time, and practice cooking meals at home. If certain ingredients can only be found online, Harmony House is a recommended source: https://www.harmonyhousefoods.com
+Open `index.html` in a browser. Use the reference link below the title for the troop's food-planning guidance. Planner entries stay in the current page and are not saved automatically, so export or print the plan before closing or reloading the page.
 
-Many meal recipes can be found on the following:
-https://andrewskurka.com/section/how-to/food-nutrition/meal-recipes/
-https://www.backpackingchef.com
-https://trailcooking.com/fbc/
-https://www.rei.com/blog/recipes
+## Plan a Menu
 
-Menu Requirements
-Every patrol menu should:
-Include foods Scouts will actually eat.
-Follow MyPlate nutritional guidelines.
-Provide balanced nutrition appropriate for the activity level of the outing.
-Consider allergies and dietary restrictions.
-Be approved before food is purchased.
-Menus that have not been reviewed and approved may not be accepted for rank advancement or merit badge credit.
-Purchasing Food for an Outing
-The Scout assigned to purchase food should:
-Use an approved menu and shopping list.
-Purchase store brands or sale items whenever practical.
-Keep all receipts.
-Pack food properly for transportation and storage.
-Estimated Food Budget
-Typical meal costs are:
-Meal	Cost Per Person
-Breakfast	$3
-Lunch	$3
-Dinner	$4
-Estimated total food cost: approximately $10 per Scout per weekend outing.
-Packing Food
-Food should be organized into:
-A food box (dry goods and cooking supplies)
-A cooler (perishable items)
-Use frozen water bottles or reusable ice packs whenever possible. Avoid loose ice whenever practical, since melted ice can contaminate food packaging.
-Reimbursement
-No family should absorb the cost of purchasing troop food.
-To receive reimbursement:
-Save all receipts.
-Write your name on the receipt or envelope.
-Complete an Expense Reimbursement Form.
-Submit the form and receipt(s) to the Campout Adult in Charge (at step-off) or to the Troop Treasurer afterwards.
-Scout Responsibility
-Food purchasing and packing are Scout responsibilities.
-Parents are encouraged to guide and assist, but Scouts should take the lead in:
-Planning
-Shopping
-Packing
-Cooking
-Cleanup
-This is an important part of developing independence and leadership skills.
-Cooking and Advancement
-Cooking skills are an important part of Scouting and are required for advancement through several ranks, as well as the Cooking Merit Badge.
-Scouts who wish to complete cooking requirements should notify their Patrol Leader before an outing so opportunities can be planned.
-Advancement Requirements Involving Cooking
-Tenderfoot
-Second Class
-First Class
-Cooking Merit Badge
-Camping Merit Badge
-For the most current requirements, visit:
-Cooking Merit Badge
-Camping Merit Badge
-Scouts BSA Rank Requirements
-The Scouting America program regularly updates advancement materials and publishes the current requirements online. [scouting.org]
-Patrol Cooking Principles
-A Scout cook should strive to provide meals that are:
-Safe
-Nutritious
-Affordable
-Well-balanced
-Enjoyable
-Remember: The best campout meals are not necessarily the most complicated. Simple meals that everyone enjoys are often the most successful. (Grilled cheese is not cooking!)
+1. Enter the campout, patrol, Scout responsible, and number of people.
+2. For each meal, choose a time slot, enter the dish name, choose a heat source, and enter calories per person.
+3. Add an ingredient row for each ingredient. Enter its name, MyPlate food group, quantity for the whole patrol, unit, and unit price. Add or remove rows as needed.
+4. Enter cooking methods, equipment and utensils, and any preparation, food-safety, or serving notes.
+5. Review meal costs, the consolidated shopping list, and the plan totals. Add or remove meals as needed.
+6. Select **Export / Print to PDF** and use the browser's print dialog to print or save a PDF.
+
+The planner starts with one meal and one ingredient row. It always keeps at least one of each. Available meal slots are Friday dinner and dessert, Saturday breakfast, lunch, snack, dinner and dessert, and Sunday breakfast.
+
+## Fields and Calculations
+
+- **Trip information:** campout, patrol, Scout responsible, and number of people. The number of people is used to calculate per-person cost.
+- **Meal details:** meal time, dish name, heat source, and calories per person. Meal calorie values are summed into the plan's Calories per person total.
+- **Ingredients:** quantity is for the whole patrol, not per person. Each line cost is quantity multiplied by unit price; the meal cost is the sum of its ingredient line costs.
+- **Food groups:** each ingredient can be assigned one group: Vegetables, Fruits, Protein, Grains, or Dairy.
+- **Cooking notes:** cooking methods, equipment and utensils, and meal notes are included in the plan.
+- **Shopping list:** matching ingredient names and units are combined across meals. Quantities and estimated costs are added together.
+- **Plan totals:** total estimated cost sums the meal costs; cost per person divides that total by the number of people.
+
+## Validation Rules
+
+Validation runs when **Export / Print to PDF** is selected. If any meal fails a check, the planner lists the problem on that meal and does not open the print dialog. After the first attempt, validation messages update as the plan is edited.
+
+- **Food groups:** every meal, including snacks and desserts, must have a named ingredient assigned to each of the five food groups.
+- **Meal budgets:** breakfast and lunch may cost no more than $3 per person; dinner may cost no more than $4 per person. The planner compares each meal's patrol total with the applicable per-person limit multiplied by the number of people. Snack and dessert slots do not have a meal-budget limit.
+- **Numeric input settings:** calories, quantities, and unit prices have a configured minimum of zero; number of people has a configured minimum of one. These fields, as well as trip details, dish names, units, and notes, are not separately required by the planner's print validation.
+
+The budget rules are estimates for planning. Review the completed menu for dietary restrictions, food safety, nutrition, and troop approval before purchasing food.

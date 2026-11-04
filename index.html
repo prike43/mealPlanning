@@ -73,7 +73,7 @@ label input,label select,label textarea{margin-top:6px;font-weight:400}
 .section-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:8px}
 .helper{margin:0;color:#64726c;font-size:13px}
 .table-scroll{overflow-x:auto}
-.ingredient-table{min-width:650px}
+.ingredient-table{min-width:760px}
 .ingredient-table th:last-child,.ingredient-table td:last-child{width:50px;text-align:center}
 .ingredient-name{min-width:150px}
 .ingredient-quantity{max-width:120px}
@@ -89,9 +89,9 @@ label input,label select,label textarea{margin-top:6px;font-weight:400}
     font-weight:700;
 }
 .meal-meta{display:grid;grid-template-columns:minmax(270px,1fr) minmax(220px,1fr);gap:12px 18px}
-.food-groups{display:flex;flex-wrap:wrap;gap:10px 14px;padding-top:7px}
-.food-groups label{display:flex;align-items:center;gap:5px;font-weight:400}
-.food-groups input{width:auto;margin:0;accent-color:#176b58}
+.ingredient-group{min-width:150px}
+.validation-message{margin:12px 0 0;color:#8c3025;font-weight:700}
+.validation-message:empty{display:none}
 .wide{grid-column:1/-1}
 .notes-area{min-height:64px;resize:vertical}
 
@@ -143,6 +143,7 @@ button:focus-visible{outline:2px solid #202b2b;outline-offset:2px}
 <div class="container">
 
 <h1>Troop Campout Meal Planner</h1>
+<p class="reference-link">For help completing this form, see <a href="https://www.glctroop125.org/food-on-trips-meal-planning/" target="_blank" rel="noopener noreferrer">Food on Trips &amp; Meal Planning</a>.</p>
 <p class="intro">Plan each meal with its ingredients, quantities, preparation details, and estimated cost.</p>
 
 <h2>Trip Information</h2>
@@ -186,10 +187,11 @@ button:focus-visible{outline:2px solid #202b2b;outline-offset:2px}
             </div>
             <div class="table-scroll">
                 <table class="ingredient-table">
-                    <thead><tr><th>Ingredient</th><th>Quantity</th><th>Unit</th><th>Unit price ($)</th><th>Line cost</th><th><span class="print-only">Remove</span></th></tr></thead>
+                    <thead><tr><th>Ingredient</th><th>Food group</th><th>Quantity</th><th>Unit</th><th>Unit price ($)</th><th>Line cost</th><th><span class="print-only">Remove</span></th></tr></thead>
                     <tbody class="ingredient-list">
                         <tr class="ingredient-row">
                             <td><input class="ingredient-name" aria-label="Ingredient" placeholder="e.g. Tortillas"></td>
+                            <td><select class="ingredient-group" aria-label="Ingredient food group"><option value="">Select group</option><option>Vegetables</option><option>Fruits</option><option>Protein</option><option>Grains</option><option>Dairy</option></select></td>
                             <td><input class="ingredient-quantity" aria-label="Quantity" type="number" min="0" step="any" value="0"></td>
                             <td><input class="ingredient-unit" aria-label="Unit" placeholder="each, lb, oz"></td>
                             <td><input class="ingredient-price" aria-label="Unit price" type="number" min="0" step="0.01" value="0"></td>
@@ -200,19 +202,10 @@ button:focus-visible{outline:2px solid #202b2b;outline-offset:2px}
                 </table>
             </div>
             <button type="button" class="secondary-button add-ingredient">Add ingredient</button>
+            <p class="validation-message" aria-live="polite"></p>
             <div class="meal-total">Meal estimated cost: <span class="meal-cost">$0.00</span></div>
 
             <div class="meal-meta">
-                <div>
-                    <label>MyPlate food groups</label>
-                    <div class="food-groups">
-                        <label><input type="checkbox">Vegetables</label>
-                        <label><input type="checkbox">Fruits</label>
-                        <label><input type="checkbox">Protein</label>
-                        <label><input type="checkbox">Grains</label>
-                        <label><input type="checkbox">Dairy</label>
-                    </div>
-                </div>
                 <label>Cooking methods<input class="cooking-methods" type="text" placeholder="e.g. Grilling, foil cooking"></label>
                 <label>Equipment and utensils<textarea class="notes-area" placeholder="List patrol and troop gear needed"></textarea></label>
                 <label>Meal notes<textarea class="notes-area" placeholder="Preparation, food safety, or serving notes"></textarea></label>
@@ -243,6 +236,8 @@ button:focus-visible{outline:2px solid #202b2b;outline-offset:2px}
 <script>
 const mealList = document.getElementById('mealList');
 const shoppingList = document.getElementById('shoppingList');
+const foodGroups = ['Vegetables', 'Fruits', 'Protein', 'Grains', 'Dairy'];
+let validationAttempted = false;
 
 function money(amount){
     return '$' + amount.toFixed(2);
@@ -264,6 +259,7 @@ function updatePlan(){
     let totalCalories = 0;
     let totalCost = 0;
     const items = new Map();
+    const people = Math.max(1, Number(document.getElementById('people').value) || 1);
 
     mealList.querySelectorAll('.meal-card').forEach(meal => {
         let mealCost = 0;
@@ -288,10 +284,10 @@ function updatePlan(){
         });
 
         meal.querySelector('.meal-cost').textContent = money(mealCost);
+        meal.dataset.cost = mealCost;
         totalCost += mealCost;
     });
 
-    const people = Math.max(1, Number(document.getElementById('people').value) || 1);
     document.getElementById('totalCalories').textContent = totalCalories.toLocaleString();
     document.getElementById('totalCost').textContent = money(totalCost);
     document.getElementById('costPerPerson').textContent = money(totalCost / people);
@@ -328,11 +324,13 @@ function addIngredient(meal){
     row.querySelectorAll('input').forEach(input => {
         input.value = input.classList.contains('ingredient-quantity') || input.classList.contains('ingredient-price') ? '0' : '';
     });
+    row.querySelector('.ingredient-group').selectedIndex = 0;
     row.querySelector('.line-cost').textContent = '$0.00';
     meal.querySelector('.ingredient-list').appendChild(row);
     updateMealLabels();
     row.querySelector('.ingredient-name').focus();
     updatePlan();
+    if(validationAttempted) validateFoodGroups();
 }
 
 document.getElementById('addMeal').addEventListener('click', () => {
@@ -342,21 +340,66 @@ document.getElementById('addMeal').addEventListener('click', () => {
     meal.querySelector('.meal-calories').value = '0';
     meal.querySelector('.cooking-methods').value = '';
     meal.querySelectorAll('.meal-meta textarea').forEach(textarea => textarea.value = '');
-    meal.querySelectorAll('.food-groups input').forEach(checkbox => checkbox.checked = false);
     const ingredientList = meal.querySelector('.ingredient-list');
     ingredientList.replaceChildren(meal.querySelector('.ingredient-row').cloneNode(true));
     meal.querySelectorAll('.ingredient-row input').forEach(input => {
         input.value = input.classList.contains('ingredient-quantity') || input.classList.contains('ingredient-price') ? '0' : '';
     });
+    meal.querySelector('.ingredient-group').selectedIndex = 0;
+    meal.querySelector('.validation-message').textContent = '';
     meal.querySelector('.line-cost').textContent = '$0.00';
     meal.querySelector('.meal-cost').textContent = '$0.00';
     mealList.appendChild(meal);
     updateMealLabels();
     updatePlan();
+    if(validationAttempted) validateFoodGroups();
     meal.querySelector('.dish-name').focus();
 });
 
-document.getElementById('printPlan').addEventListener('click', () => window.print());
+function validateFoodGroups(){
+    let firstInvalidMeal = null;
+    const people = Math.max(1, Number(document.getElementById('people').value) || 1);
+    mealList.querySelectorAll('.meal-card').forEach((meal, index) => {
+        const representedGroups = new Set([...meal.querySelectorAll('.ingredient-row')]
+            .filter(row => row.querySelector('.ingredient-name').value.trim())
+            .map(row => row.querySelector('.ingredient-group').value));
+        const missingGroups = foodGroups.filter(group => !representedGroups.has(group));
+        const errors = [];
+        if(missingGroups.length){
+            errors.push(`Needs an ingredient for: ${missingGroups.join(', ')}.`);
+        }
+
+        const mealSlot = meal.querySelector('.meal-slot').value;
+        const costLimit = mealSlot.includes('Dinner') ? 4 : /Breakfast|Lunch/.test(mealSlot) ? 3 : null;
+        const mealCost = Number(meal.dataset.cost) || 0;
+        if(costLimit !== null && Math.round(mealCost * 100) > costLimit * people * 100){
+            errors.push(`Meal cost ${money(mealCost)} exceeds the ${mealSlot.replace(/^.*? /, '')} limit of $${costLimit.toFixed(2)} per person (maximum ${money(costLimit * people)} for ${people} people).`);
+        }
+
+        const message = meal.querySelector('.validation-message');
+        message.textContent = errors.length ? `Meal ${index + 1}: ${errors.join(' ')}` : '';
+        if(errors.length && !firstInvalidMeal){
+            firstInvalidMeal = {
+                meal,
+                control: missingGroups.length
+                    ? meal.querySelector('.ingredient-group')
+                    : meal.querySelector('.ingredient-price')
+            };
+        }
+    });
+    return firstInvalidMeal;
+}
+
+document.getElementById('printPlan').addEventListener('click', () => {
+    validationAttempted = true;
+    const invalidMeal = validateFoodGroups();
+    if(invalidMeal){
+        invalidMeal.control.focus();
+        invalidMeal.meal.scrollIntoView({behavior:'smooth', block:'center'});
+        return;
+    }
+    window.print();
+});
 
 document.addEventListener('click', event => {
     const meal = event.target.closest('.meal-card');
@@ -369,15 +412,23 @@ document.addEventListener('click', event => {
             updateMealLabels();
         }
         updatePlan();
+        if(validationAttempted) validateFoodGroups();
     }else if(event.target.closest('.remove-meal') && meal && mealList.querySelectorAll('.meal-card').length > 1){
         meal.remove();
         updateMealLabels();
         updatePlan();
+        if(validationAttempted) validateFoodGroups();
     }
 });
 
 document.addEventListener('input', updatePlan);
 document.addEventListener('change', updatePlan);
+document.addEventListener('input', () => {
+    if(validationAttempted) validateFoodGroups();
+});
+document.addEventListener('change', () => {
+    if(validationAttempted) validateFoodGroups();
+});
 updateMealLabels();
 updatePlan();
 
